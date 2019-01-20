@@ -12,6 +12,12 @@ div class='text-center center-block center'
   input class='form-control' id='query' value=@query
   br
 
+form action="/#{@target}/save_image" method='POST' id='save_image'
+  input type='hidden' value='' name='ig_image_data' id='ig_image_data'
+  input type='hidden' value=@query name='ig_image_name' id='ig_image_name'
+  button type='submit' name='save'
+    | Save Image
+
 br
 canvas id='ig_image' class='text-center center-block' width=1080 height=1080
   Image Canvas
@@ -93,6 +99,7 @@ javascript:
 
     var $img = $(img).data('large');
     var largeImg = document.createElement('img');
+    largeImg.crossOrigin = 'anonymous';
     largeImg.onload = function() {
       var xScale = this.naturalWidth / img.clientWidth;
       var yScale = this.naturalHeight / img.clientHeight;
@@ -126,4 +133,10 @@ javascript:
       dots: true,
       items: 5
     });
+  });
+
+  $('form#save_image').submit(function() {
+    $('#ig_image_data').val($('#ig_image')[0].toDataURL());
+    $('#ig_image_name').val($('#query').val().replace("the ", ""));
+    return true;
   });

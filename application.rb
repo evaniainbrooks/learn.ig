@@ -5,6 +5,7 @@ require 'net/http'
 require 'json'
 require 'slim'
 require 'yaml'
+require 'mime/types'
 
 require 'dotenv'
 Dotenv.load
@@ -72,15 +73,28 @@ def translate_text(text, target: 'el', from: 'en')
   end
 end
 
-get '/translate/:query' do
-  @query = params.fetch(:query, '')
-  translate_text(@query).to_s
+post '/:target/save_image' do
+  @name = params[:ig_image_name]
+  @data = params[:ig_image_data]
+  @target = params[:target]
+
+  REGEXP = /\Adata:([-\w]+\/[-\w\+\.]+)?;base64,(.*)/m
+
+  data_parts = @data.match(REGEXP) || []
+  extension = MIME::Types[data_parts[1]].first.preferred_extension
+  filename = "#{@name}.#{extension}"
+
+  File.open([File.dirname(__FILE__), 'images', @target, filename].join('/'), 'wb') do |f|
+    f.write(Base64.decode64(data_parts[2]))
+  end
+
+  redirect "/#{@target}/generate/#{COMMON_NOUNS.sample}"
 end
 
-get '/:query' do
+get '/:target/generate/:query' do
   @query = params.fetch(:query, '')
   @query = "the " + @query if params.fetch(:pronoun, 1).to_i == 1
-  @target = params.fetch(:target, 'el')
+  @target = params.fetch(:target)
   @result = search_pexels(@query.gsub('the ', ''))
   @translation = translate_text(@query, target: @target)
 

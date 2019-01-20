@@ -10,4 +10,5 @@ gem 'sinatra'
 gem 'slim'
 gem 'mini_magick'
 gem 'google-cloud-translate'
+gem 'mime-types'
 
