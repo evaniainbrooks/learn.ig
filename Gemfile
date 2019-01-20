@@ -8,4 +8,6 @@ ruby '2.5.3'
 gem 'dotenv'
 gem 'sinatra'
 gem 'slim'
+gem 'mini_magick'
+gem 'google-cloud-translate'
 

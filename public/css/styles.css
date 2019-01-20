@@ -1,0 +1,11 @@
+
+input {
+  font-size: 120%;
+  margin-bottom: 10px;
+}
+
+canvas {
+  border: 1px solid #ccc;
+  margin: 0px auto;
+  display: block;
+}
