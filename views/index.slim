@@ -18,6 +18,10 @@ form action="/#{@target}/save_image" method='POST' id='save_image'
   button type='submit' name='save'
     | Save Image
 
+form action="/#{@target}/next_image" method='POST' id='next_image'
+  button type='submit' name='save'
+    | Next
+
 br
 canvas id='ig_image' class='text-center center-block' width=1080 height=1080
   Image Canvas

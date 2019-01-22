@@ -39,22 +39,25 @@ def search_pexels(query)
   normalized_query = query.gsub(' ', '+');
   cache_key = "pexels/#{normalized_query}.json"
 
-  begin
-    cache(cache_key) do
-      uri = URI('https://api.pexels.com/v1/search')
-      uri.query = ["query=#{normalized_query}", "per_page=30", "page=1"].compact.join('&')
-      http = Net::HTTP.new(uri.host, uri.port)
-      http.use_ssl = true
+  result =
+    begin
+      cache(cache_key) do
+        uri = URI('https://api.pexels.com/v1/search')
+        uri.query = ["query=#{normalized_query}", "per_page=30", "page=1"].compact.join('&')
+        http = Net::HTTP.new(uri.host, uri.port)
+        http.use_ssl = true
 
-      req = Net::HTTP::Get.new(uri.request_uri, { 'Content-Type' =>'application/json', 'Authorization' => PEXELS_API_KEY })
-      res = http.request(req)
+        req = Net::HTTP::Get.new(uri.request_uri, { 'Content-Type' =>'application/json', 'Authorization' => PEXELS_API_KEY })
+        res = http.request(req)
 
-      JSON.parse(res.body)
+        res.body
+      end
+    rescue => e
+      puts "Request failed #{e}"
+      nil
     end
-  rescue => e
-    puts "Request failed #{e}"
-    nil
-  end
+
+  JSON.parse(result) if result
 end
 
 # Google translate text
@@ -84,6 +87,11 @@ post '/:target/save_image' do
 
   save_image(@name, @target, @data)
 
+  redirect "/#{@target}/generate/#{COMMON_NOUNS.sample}"
+end
+
+post '/:target/next_image' do
+  @target = params[:target]
   redirect "/#{@target}/generate/#{COMMON_NOUNS.sample}"
 end
 
