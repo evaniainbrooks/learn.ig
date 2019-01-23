@@ -1,0 +1,251 @@
+h1= "Searched for #{@queries.join(', ')} (#{@target}: #{@translations.join(', ')})"
+
+div class='owl-carousel owl-theme'
+  - @photo_sets[0].each do |photo|
+    div: img class='stock0' src=photo.small data-large=photo.large data-square=photo.square
+
+div class='owl-carousel owl-theme'
+  - @photo_sets[1].each do |photo|
+    div: img class='stock1' src=photo.small data-large=photo.large data-square=photo.square
+
+div class='row'
+  div class='col-6 text-center center-block center'
+    input class='form-control' id='translation0' value=@translations[0]
+    br
+    input class='form-control' id='transliteration0' value=''
+    br
+    input class='form-control' id='query0' value=@queries[0]
+    br
+  div class='col-6 text-center center-block center'
+    input class='form-control' id='translation1' value=@translations[1]
+    br
+    input class='form-control' id='transliteration1' value=''
+    br
+    input class='form-control' id='query1' value=@queries[1]
+    br
+
+form action="/#{@target}/save_image" method='POST' id='save_image'
+  input type='hidden' value='' name='ig_image_data' id='ig_image_data'
+  input type='hidden' value=@queries.join('_') name='ig_image_name' id='ig_image_name'
+  input type='hidden' value='1' name='antonym' id='antonym'
+  button type='submit' name='save'
+    | Save Image
+
+form action="/#{@target}/next_image" method='POST' id='next_image'
+  input type='hidden' value='1' name='antonym' id='antonym'
+  button type='submit' name='save'
+    | Next
+
+br
+canvas id='ig_image' class='text-center center-block' width=1080 height=1080
+  Image Canvas
+
+javascript:
+  var selectedImageData0 = [];
+  var selectedImageData1 = [];
+  var query0 = "#{@queries[0]}";
+  var translation0 = "#{@translations[0]}";
+  var transliteration0 = "";
+
+  var query1 = "#{@queries[1]}";
+  var translation1 = "#{@translations[1]}";
+  var transliteration1 = "";
+
+  $('#translation0').change(function() {
+    translation0 = $(this).val();
+    var tr = $('#translation0').val();
+    window.t.go(1, document.getElementById('translation0'));
+    $('#transliteration0').val($('#translation0').val());
+    transliteration0 = $('#transliteration0').val();
+    $('#translation0').val(tr);
+    updateImage();
+  });
+
+  $('#translation1').change(function() {
+    translation1 = $(this).val();
+    var tr = $('#translation1').val();
+    window.t.go(1, document.getElementById('translation1'));
+    $('#transliteration1').val($('#translation1').val());
+    transliteration1 = $('#transliteration1').val();
+    $('#translation1').val(tr);
+    updateImage();
+  });
+
+  $('#query0').change(function() {
+    query0 = $(this).val();
+    updateImage();
+  });
+
+  $('#query1').change(function() {
+    query1 = $(this).val();
+    updateImage();
+  });
+
+  $('#transliteration0').change(function() {
+    transliteration0 = $(this).val();
+    updateImage();
+  });
+
+  $('#transliteration1').change(function() {
+    transliteration1 = $(this).val();
+    updateImage();
+  });
+
+  var updateImage = function() {
+    var canvas = document.getElementById('ig_image');
+    var ctx = canvas.getContext('2d');
+
+    ctx.fillStyle = 'rgb(255, 255, 255)';
+    ctx.fillRect(0, 0, 1080, 1080);
+
+    ctx.fillStyle = 'rgb(200, 100, 100)';
+    ctx.fillRect(30, 30, 1000, 1000);
+
+    ctx.fillStyle = 'rgba(0, 0, 100, 0.5)';
+    ctx.fillRect(50, 50, 1000, 1000);
+
+    ctx.fillStyle = 'rgb(51, 51, 51)';
+    ctx.fillRect(50, 50, 980, 980);
+
+    ctx.fillStyle = 'rgb(204, 204, 204)';
+    ctx.fillRect(550, 50, 480, 980);
+
+    var trY = transliteration0.length > 0 ? 155 : 180;
+
+    ctx.font = "100px Arial";
+    ctx.textAlign = "center";
+    ctx.fillStyle = "white";
+    ctx.fillText(translation0, canvas.width/4 + 30, trY);
+    ctx.lineWith = 2;
+    ctx.strokeStyle = '#2b162b';
+    //ctx.strokeText(translation0, canvas.width/4 + 30, trY);
+
+    ctx.font = "40px Arial";
+    ctx.textAlign = "center";
+    ctx.fillStyle = "white";
+    ctx.fillText(transliteration0, canvas.width/4 + 30, 210);
+    //ctx.lineWith = 1;
+    //ctx.strokeStyle = '#2b162b';
+    //ctx.strokeText(transliteration0, canvas.width/4 + 30, 210);
+
+    ctx.font = "100px Arial";
+    ctx.textAlign = "center";
+    ctx.fillStyle = "white";
+    ctx.lineWith = 2;
+    ctx.strokeStyle = '#2b162b';
+    ctx.fillText(query0, canvas.width/4 + 30, 730);
+    //ctx.strokeText(query0, canvas.width/4 + 30, 960);
+
+    if (selectedImageData0) {
+      CanvasRenderingContext2D.prototype.drawImage.apply(ctx, selectedImageData0);
+    }
+
+
+    trY = transliteration1.length > 0 ? 405 : 430;
+
+    ctx.font = "100px Arial";
+    ctx.textAlign = "center";
+    ctx.fillStyle = "black";
+    ctx.fillText(translation1, (canvas.width/4)*3 - 10, trY);
+    ctx.lineWith = 2;
+    ctx.strokeStyle = '#2b162b';
+    //ctx.strokeText(translation1, (canvas.width/4)*3 - 10, trY);
+
+    ctx.font = "40px Arial";
+    ctx.textAlign = "center";
+    ctx.fillStyle = "black";
+    ctx.fillText(transliteration1, (canvas.width/4)*3 - 10, 460);
+    //ctx.lineWith = 1;
+    //ctx.strokeStyle = '#2b162b';
+    //ctx.strokeText(transliteration1, (canvas.width/4)*3 - 10, 460);
+
+    ctx.font = "100px Arial";
+    ctx.textAlign = "center";
+    ctx.fillStyle = "black";
+    ctx.lineWith = 2;
+    ctx.strokeStyle = '#2b162b';
+    ctx.fillText(query1, (canvas.width/4)*3 - 10, 980);
+    //ctx.strokeText(query1, (canvas.width/4)*3, 870);
+
+    if (selectedImageData1) {
+      CanvasRenderingContext2D.prototype.drawImage.apply(ctx, selectedImageData1);
+    }
+  };
+
+  var stockImageSelected0 = function(img, dim) {
+    var canvas = document.getElementById('ig_image');
+    var ctx = canvas.getContext('2d');
+
+    var $img = $(img).data('large');
+    var largeImg = document.createElement('img');
+    largeImg.crossOrigin = 'anonymous';
+    largeImg.onload = function() {
+      var xScale = this.naturalWidth / img.clientWidth;
+      var yScale = this.naturalHeight / img.clientHeight;
+
+      selectedImageData0 = [this, dim.x1 * xScale, dim.y1 * yScale, dim.width * xScale, dim.height * yScale, canvas.width/4 - 200 + 30, 240, 400, 400];
+      updateImage();
+    };
+
+    largeImg.src = $(img).data('large');
+  };
+
+  var stockImageSelected1 = function(img, dim) {
+    var canvas = document.getElementById('ig_image');
+    var ctx = canvas.getContext('2d');
+
+    var $img = $(img).data('large');
+    var largeImg = document.createElement('img');
+    largeImg.crossOrigin = 'anonymous';
+    largeImg.onload = function() {
+      var xScale = this.naturalWidth / img.clientWidth;
+      var yScale = this.naturalHeight / img.clientHeight;
+
+      selectedImageData1 = [this, dim.x1 * xScale, dim.y1 * yScale, dim.width * xScale, dim.height * yScale, (canvas.width/4)*3 - 200 - 20,  490, 400, 400];
+      updateImage();
+    };
+
+    largeImg.src = $(img).data('large');
+  };
+
+  $(document).ready(function() {
+    if ("#{@target}" === 'el') {
+      var tr = $('#translation0').val();
+      window.t.go(1, document.getElementById('translation0'));
+      $('#transliteration0').val($('#translation0').val());
+      transliteration0 = $('#transliteration0').val();
+      $('#translation0').val(tr);
+
+      tr = $('#translation1').val();
+      window.t.go(1, document.getElementById('translation1'));
+      $('#transliteration1').val($('#translation1').val());
+      transliteration1 = $('#transliteration1').val();
+      $('#translation1').val(tr);
+    }
+
+    $('.stock0').imgAreaSelect({
+      handles: true,
+      aspectRatio: '1:1',
+      onSelectEnd: stockImageSelected0
+    });
+
+    $('.stock1').imgAreaSelect({
+      handles: true,
+      aspectRatio: '1:1',
+      onSelectEnd: stockImageSelected1
+    });
+
+    $('.owl-carousel').owlCarousel({
+      nav: true,
+      margin: true,
+      autoWidth: true,
+      dots: true,
+      items: 5
+    });
+  });
+
+  $('form#save_image').submit(function() {
+    $('#ig_image_data').val($('#ig_image')[0].toDataURL());
+    $('#ig_image_name').val($('#query').val().replace("the ", ""));
+    return true;
+  });

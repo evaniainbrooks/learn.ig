@@ -12,7 +12,8 @@ require "google/cloud/translate"
 Dotenv.load
 
 PEXELS_API_KEY = ENV.fetch('PEXELS_API_KEY')
-COMMON_NOUNS = YAML.load_file('nouns.yml')
+COMMON_NOUNS = YAML.load_file('nouns.yml').freeze
+COMMON_ANTONYMS = YAML.load_file('antonyms.yml').map { |line| line.split(',') }.freeze
 
 # Your Google Cloud Platform project ID
 GOOGLE_PROJECT_ID = "learn-ig-228920"
@@ -87,12 +88,23 @@ post '/:target/save_image' do
 
   save_image(@name, @target, @data)
 
-  redirect "/#{@target}/generate/#{COMMON_NOUNS.sample}"
+  antonym = params.fetch(:antonym, 0).to_i
+  if antonym
+    redirect "/#{@target}/antonym/#{COMMON_ANTONYMS.sample.join(',').downcase}"
+  else
+    redirect "/#{@target}/generate/#{COMMON_NOUNS.sample}"
+  end
 end
 
 post '/:target/next_image' do
   @target = params[:target]
-  redirect "/#{@target}/generate/#{COMMON_NOUNS.sample}"
+
+  antonym = params.fetch(:antonym, 0).to_i
+  if antonym
+    redirect "/#{@target}/antonym/#{COMMON_ANTONYMS.sample.join(',').downcase}"
+  else
+    redirect "/#{@target}/generate/#{COMMON_NOUNS.sample}"
+  end
 end
 
 get '/:target/generate/:query' do
@@ -107,4 +119,22 @@ get '/:target/generate/:query' do
   end
 
   slim :index
+end
+
+get '/:target/antonym/:query' do
+  @queries = params.fetch(:query, '').split(',')
+  @target = params.fetch(:target)
+  @translations = [translate_text(@queries[0], target: @target), translate_text(@queries[1], target: @target)]
+
+  results = [search_pexels(@queries[0]), search_pexels(@queries[1])]
+  @photo_sets = []
+  @photo_sets << results[0]['photos'].collect do |photo|
+    OpenStruct.new(photo['src'].transform_keys { |k| k.to_sym })
+  end
+
+  @photo_sets << results[1]['photos'].collect do |photo|
+    OpenStruct.new(photo['src'].transform_keys { |k| k.to_sym })
+  end
+
+  slim :antonym
 end

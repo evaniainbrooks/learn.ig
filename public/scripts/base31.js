@@ -94,7 +94,7 @@ var txt = document.getElementById("txt");
 if(txt.value.length)txt.className="tx1";else txt.className="tx0";
 document.getElementById("txtcount").innerHTML=document.getElementById("txt").value.length;},
 tcps:function(){if(t.mCaps){document.getElementById("work-right-body-content-el").style.textTransform="none";document.getElementById("togCaps").className="off";}else{document.getElementById("work-right-body-content-el").style.textTransform="uppercase";document.getElementById("togCaps").className="on";}t.mCaps=!t.mCaps;t.fc();},
-go:function(dir){var txt=document.getElementById("translation");if(txt.value=="")return;var text="";
+go:function(dir, elem){var txt=elem;if(txt.value=="")return;var text="";
 if (txt.selectionStart >= 0) {
 var sTop=txt.scrollTop;
 var s = txt.selectionStart;
