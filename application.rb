@@ -88,7 +88,7 @@ post '/:target/save_image' do
 
   save_image(@name, @target, @data)
 
-  antonym = params.fetch(:antonym, 0).to_i
+  antonym = params.fetch(:antonym, 0).to_i == 1
   if antonym
     redirect "/#{@target}/antonym/#{COMMON_ANTONYMS.sample.join(',').downcase}"
   else
@@ -99,7 +99,7 @@ end
 post '/:target/next_image' do
   @target = params[:target]
 
-  antonym = params.fetch(:antonym, 0).to_i
+  antonym = params.fetch(:antonym, 0).to_i == 1
   if antonym
     redirect "/#{@target}/antonym/#{COMMON_ANTONYMS.sample.join(',').downcase}"
   else
@@ -113,18 +113,22 @@ get '/:target/generate/:query' do
   @target = params.fetch(:target)
   @translation = translate_text(@query, target: @target)
 
-  result = search_pexels(@query.gsub('the ', ''))
+  pq = params.fetch(:pq, @query)
+  result = search_pexels(pq.gsub('the ', ''))
   @photos = result['photos'].collect do |photo|
     OpenStruct.new(photo['src'].transform_keys { |k| k.to_sym })
   end
 
-  slim :index
+  slim :generate
 end
 
 get '/:target/antonym/:query' do
   @queries = params.fetch(:query, '').split(',')
   @target = params.fetch(:target)
-  @translations = [translate_text(@queries[0], target: @target), translate_text(@queries[1], target: @target)]
+
+  pq0 = params.fetch(:pq0, @queries[0])
+  pq1 = params.fetch(:pq1, @queries[1])
+  @translations = [translate_text(pq0, target: @target), translate_text(pq1, target: @target)]
 
   results = [search_pexels(@queries[0]), search_pexels(@queries[1])]
   @photo_sets = []

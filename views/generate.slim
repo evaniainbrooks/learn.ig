@@ -35,7 +35,7 @@ javascript:
   $('#translation').change(function() {
     translation = $(this).val();
     var tr = $('#translation').val();
-    window.t.go(1);
+    window.t.go(1, document.getElementById('translation'));
     $('#transliteration').val($('#translation').val());
     transliteration = $('#transliteration').val();
     $('#translation').val(tr);
@@ -118,7 +118,7 @@ javascript:
   $(document).ready(function() {
     if ("#{@target}" === 'el') {
       var tr = $('#translation').val();
-      window.t.go(1);
+      window.t.go(1, document.getElementById('translation'));
       $('#transliteration').val($('#translation').val());
       transliteration = $('#transliteration').val();
       $('#translation').val(tr);
