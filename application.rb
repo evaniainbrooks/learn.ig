@@ -126,11 +126,11 @@ get '/:target/antonym/:query' do
   @queries = params.fetch(:query, '').split(',')
   @target = params.fetch(:target)
 
+  @translations = [translate_text(@queries[0], target: @target), translate_text(@queries[1], target: @target)]
+
   pq0 = params.fetch(:pq0, @queries[0])
   pq1 = params.fetch(:pq1, @queries[1])
-  @translations = [translate_text(pq0, target: @target), translate_text(pq1, target: @target)]
-
-  results = [search_pexels(@queries[0]), search_pexels(@queries[1])]
+  results = [search_pexels(pq0), search_pexels(pq1)]
   @photo_sets = []
   @photo_sets << results[0]['photos'].collect do |photo|
     OpenStruct.new(photo['src'].transform_keys { |k| k.to_sym })
