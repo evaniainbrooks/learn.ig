@@ -1,0 +1,219 @@
+h1= "Searched for #{@query} (el: #{@translations.last})"
+p= "Choices #{@nouns.join(', ')} (el: #{@translations.join(', ')})"
+
+div class='owl-carousel owl-theme'
+  - @photos.each do |photo|
+    div: img class='stock' src=photo.small data-large=photo.large data-square=photo.square
+
+div class='text-center center-block center'
+  input class='form-control' id='translation' value=@translations.last
+  br
+  input class='form-control' id='transliteration' value=''
+  br
+  input class='form-control' id='query' value=@query
+  br
+
+form action="/#{@target}/save_image" method='POST' id='save_image'
+  input type='hidden' value='' name='ig_image_data' id='ig_image_data'
+  input type='hidden' value=@query name='ig_image_name' id='ig_image_name'
+  input type='hidden' value='1' name='quiz' id='quiz'
+  button type='submit' name='save'
+    | Save Image
+
+form action="/#{@target}/next_image" method='POST' id='next_image'
+  input type='hidden' value='1' name='quiz' id='quiz'
+  button type='submit' name='save'
+    | Next
+
+br
+canvas id='ig_image' class='text-center center-block' width=1080 height=1080
+  Image Canvas
+
+javascript:
+  var selectedImageData = [];
+  var query = "#{@query}";
+  var translation = "#{@translations.last}";
+
+  if ("#{@target}" === 'el') {
+    var transliterations = [null, null, null, null];
+
+    $('#transliteration').val("#{@translations[0]}");
+    t.go(1, document.getElementById('transliteration'));
+    transliterations[0] = $('#transliteration').val();
+
+    $('#transliteration').val("#{@translations[1]}");
+    t.go(1, document.getElementById('transliteration'));
+    transliterations[1] = $('#transliteration').val();
+
+    $('#transliteration').val("#{@translations[2]}");
+    t.go(1, document.getElementById('transliteration'));
+    transliterations[2] = $('#transliteration').val();
+
+    $('#transliteration').val("#{@translations[3]}");
+    t.go(1, document.getElementById('transliteration'));
+    transliterations[3] = $('#transliteration').val();
+  }
+
+  $('#translation').change(function() {
+    translation = $(this).val();
+    var tr = $('#translation').val();
+    window.t.go(1, document.getElementById('translation'));
+    $('#transliteration').val($('#translation').val());
+    transliteration = $('#transliteration').val();
+    $('#translation').val(tr);
+    updateImage();
+  });
+
+  $('#query').change(function() {
+    query = $(this).val();
+    updateImage();
+  });
+
+  $('#transliteration').change(function() {
+    transliteration = $(this).val();
+    updateImage();
+  });
+
+  var updateImage = function() {
+    var canvas = document.getElementById('ig_image');
+    var ctx = canvas.getContext('2d');
+
+    ctx.fillStyle = 'rgb(255, 255, 255)';
+    ctx.fillRect(0, 0, 1080, 1080);
+
+    ctx.fillStyle = 'rgb(200, 100, 100)';
+    ctx.fillRect(30, 30, 1000, 1000);
+
+    ctx.fillStyle = 'rgba(0, 0, 100, 0.5)';
+    ctx.fillRect(50, 50, 1000, 1000);
+
+    ctx.fillStyle = 'rgb(221, 221, 221)';
+    ctx.fillRect(50, 50, 980, 980);
+
+    var trY = 180;
+
+    ctx.font = "100px Arial";
+    ctx.textAlign = "center";
+    ctx.fillStyle = "black";
+    ctx.fillText(query, canvas.width/2, trY);
+    ctx.lineWith = 2;
+    ctx.strokeStyle = '#2b162b';
+    //ctx.strokeText(translation, canvas.width/2, trY);
+
+    //ctx.font = "40px Arial";
+    //ctx.textAlign = "center";
+    //ctx.fillStyle = "black";
+    //ctx.fillText(transliteration, canvas.width/2, 210);
+    //ctx.lineWith = 1;
+    //ctx.strokeStyle = '#2b162b';
+    //ctx.strokeText(transliteration, canvas.width/2, 210);
+
+    ctx.font = "60px Arial";
+    ctx.textAlign = "left";
+    ctx.lineWith = 2;
+    ctx.strokeStyle = '#2b162b';
+    ctx.fillStyle = "black";
+
+    ctx.font = "60px Arial";
+    ctx.fillStyle = "red";
+    ctx.fillText('α)', canvas.width/4 - 90, 820);
+    ctx.strokeText('α)', canvas.width/4 - 90, 820);
+
+    ctx.font = "50px Arial";
+    ctx.fillStyle = "black";
+    ctx.fillText("#{@translations[0]}", canvas.width/4 - 30, 820);
+    if ("#{@target}" === 'el') {
+      ctx.font = "30px Arial";
+      ctx.fillText(transliterations[0], canvas.width/4 - 30, 860);
+    }
+
+    ctx.font = "60px Arial";
+    ctx.fillStyle = "green";
+    ctx.fillText('β)', (canvas.width/4) * 3 - 160, 820);
+    ctx.strokeText('β)', (canvas.width/4) * 3 - 160, 820);
+
+    ctx.font = "50px Arial";
+    ctx.fillStyle = "black";
+    ctx.fillText("#{@translations[1]}", (canvas.width/4) * 3 - 100, 820);
+    if ("#{@target}" === 'el') {
+      ctx.font = "30px Arial";
+      ctx.fillText(transliterations[1], (canvas.width/4) * 3 - 100, 860);
+    }
+
+    ctx.font = "60px Arial";
+    ctx.fillStyle = "blue";
+    ctx.fillText('γ)', canvas.width/4 - 90, 940);
+    ctx.strokeText('γ)', canvas.width/4 - 90, 940);
+
+    ctx.font = "50px Arial";
+    ctx.fillStyle = "black";
+    ctx.fillText("#{@translations[2]}", canvas.width/4 - 30, 940);
+    if ("#{@target}" === 'el') {
+      ctx.font = "30px Arial";
+      ctx.fillText(transliterations[2], canvas.width/4 - 30, 980);
+    }
+
+    ctx.font = "60px Arial";
+    ctx.fillStyle = "yellow";
+    ctx.fillText('δ)', (canvas.width/4) * 3 - 160, 940);
+    ctx.strokeText('δ)', (canvas.width/4) * 3 - 160, 940);
+
+    ctx.font = "50px Arial";
+    ctx.fillStyle = "black";
+    ctx.fillText("#{@translations[3]}", (canvas.width/4) * 3 - 100, 940);
+    if ("#{@target}" === 'el') {
+      ctx.font = "30px Arial";
+      ctx.fillText(transliterations[3], (canvas.width/4 * 3) - 100, 980);
+    }
+    //ctx.strokeText(query, canvas.width/2, 960);
+
+    CanvasRenderingContext2D.prototype.drawImage.apply(ctx, selectedImageData);
+  };
+
+  var stockImageSelected = function(img, dim) {
+    var canvas = document.getElementById('ig_image');
+    var ctx = canvas.getContext('2d');
+
+    var $img = $(img).data('large');
+    var largeImg = document.createElement('img');
+    largeImg.crossOrigin = 'anonymous';
+    largeImg.onload = function() {
+      var xScale = this.naturalWidth / img.clientWidth;
+      var yScale = this.naturalHeight / img.clientHeight;
+
+      selectedImageData = [this, dim.x1 * xScale, dim.y1 * yScale, dim.width * xScale, dim.height * yScale, 290, 220, 500, 500];
+      updateImage();
+    };
+
+    largeImg.src = $(img).data('large');
+  };
+
+  $(document).ready(function() {
+    if ("#{@target}" === 'el') {
+      var tr = $('#translation').val();
+      window.t.go(1, document.getElementById('translation'));
+      $('#transliteration').val($('#translation').val());
+      transliteration = $('#transliteration').val();
+      $('#translation').val(tr);
+    }
+
+    $('.stock').imgAreaSelect({
+      handles: true,
+      aspectRatio: '1:1',
+      onSelectEnd: stockImageSelected
+    });
+
+    $('.owl-carousel').owlCarousel({
+      nav: true,
+      margin: true,
+      autoWidth: true,
+      dots: true,
+      items: 5
+    });
+  });
+
+  $('form#save_image').submit(function() {
+    $('#ig_image_data').val($('#ig_image')[0].toDataURL());
+    $('#ig_image_name').val($('#query').val() + "_quiz");
+    return true;
+  });

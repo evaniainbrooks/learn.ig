@@ -1,0 +1,183 @@
+h1= "Searched for #{@query} (#{@translations.join(', ')})"
+
+css:
+  canvas {
+   zoom: 25%;
+  }
+
+
+div class='owl-carousel owl-theme'
+  - @photos.each do |photo|
+    div: img class='stock' src=photo.small data-large=photo.large data-square=photo.square
+
+javascript:
+  window.selectedImageData = [];
+  var stockImageSelected = function(img, dim) {
+    var $img = $(img).data('large');
+    var largeImg = document.createElement('img');
+    largeImg.crossOrigin = 'anonymous';
+    largeImg.onload = function() {
+      var xScale = this.naturalWidth / img.clientWidth;
+      var yScale = this.naturalHeight / img.clientHeight;
+
+      window.selectedImageData = [this, dim.x1 * xScale, dim.y1 * yScale, dim.width * xScale, dim.height * yScale, 240, 240, 600, 600];
+      update#{@targets[0]}Image();
+      update#{@targets[1]}Image();
+      update#{@targets[2]}Image();
+      update#{@targets[3]}Image();
+    };
+
+    largeImg.src = $(img).data('large');
+  };
+
+  $(document).ready(function() {
+    $('.stock').imgAreaSelect({
+      handles: true,
+      aspectRatio: '1:1',
+      onSelectEnd: stockImageSelected
+    });
+
+    $('.owl-carousel').owlCarousel({
+      nav: true,
+      margin: true,
+      autoWidth: true,
+      dots: true,
+      items: 5
+    });
+
+    $('#save-all').click(function() {
+      alert('OK');
+      $('form.save-image').submit();
+    });
+  });
+
+form action="/#{@targets.join(',')}/next_image" method='POST' id='next_image'
+  input type='hidden' value='1' name='multigen' id='multigen'
+  button class='btn btn-large' type='submit' name='save'
+    | Skip to Next
+  button id="save-all" type='button' class='btn btn-large'
+    | Save All
+
+- @targets.each.with_index do |target, i|
+  div class="row"
+    div class='col-6   center'
+      input class='form-control' id="translation_#{target}" value=@translations[i]
+      br
+      input class='form-control' id="transliteration_#{target}" value=''
+      br
+      input class='form-control' id="query_#{target}" value=@queries[i]
+      br
+
+    div class="col-6"
+      form action="/#{target}/save_image" class="save-image" method='POST' id="save_image_#{target}"
+        input type='hidden' value='' name='ig_image_data' id="ig_image_data_#{target}"
+        input type='hidden' value=@queries[i] name='ig_image_name' id="ig_image_name_#{target}"
+        button type='submit' name='save'
+          | Save Image
+
+
+      br
+      canvas id="ig_image_#{target}" class=' ' width=1080 height=1080
+        Image Canvas
+
+  javascript:
+    window.query_#{target} = "#{@queries[i]}";
+    window.translation_#{target} = "#{@translations[i]}";
+    window.transliteration_#{target} = "";
+
+    $("#translation_#{target}").change(function() {
+      translation_#{target} = $(this).val();
+      var tr = $("#translation_#{target}").val();
+      window.t.go(1, document.getElementById("translation_#{target}"));
+      $("#transliteration_#{target}").val($("#translation_#{target}").val());
+      transliteration_#{target} = $("#transliteration_#{target}").val();
+      $("#translation_#{target}").val(tr);
+      update#{target}Image();
+    });
+
+    $("#query_#{target}").change(function() {
+      query_#{target} = $(this).val();
+      update#{target}Image();
+    });
+
+    $("#transliteration_#{target}").change(function() {
+      transliteration_#{target} = $(this).val();
+      update#{target}Image();
+    });
+
+    var update#{target}Image = function() {
+      var canvas = document.getElementById("ig_image_#{target}");
+      var ctx = canvas.getContext('2d');
+
+      ctx.fillStyle = 'rgb(255, 255, 255)';
+      ctx.fillRect(0, 0, 1080, 1080);
+
+      ctx.fillStyle = 'rgb(200, 100, 100)';
+      ctx.fillRect(30, 30, 1000, 1000);
+
+      ctx.fillStyle = 'rgba(0, 0, 100, 0.5)';
+      ctx.fillRect(50, 50, 1000, 1000);
+
+      ctx.fillStyle = 'rgb(0, 0, 0)';
+      ctx.fillRect(50, 50, 980, 980);
+
+      var trY = transliteration_#{target}.length > 0 ? 155 : 180;
+
+      ctx.font = "100px Arial";
+      ctx.textAlign = "center";
+      ctx.fillStyle = "white";
+      ctx.fillText(translation_#{target}, canvas.width/2, trY);
+      ctx.lineWith = 2;
+      ctx.strokeStyle = '#2b162b';
+      //ctx.strokeText(translation_#{target}, canvas.width/2, trY);
+
+      ctx.font = "40px Arial";
+      ctx.textAlign = "center";
+      ctx.fillStyle = "white";
+      ctx.fillText(transliteration_#{target}, canvas.width/2, 210);
+      //ctx.lineWith = 1;
+      //ctx.strokeStyle = '#2b162b';
+      //ctx.strokeText(transliteration_#{target}, canvas.width/2, 210);
+
+      ctx.font = "100px Arial";
+      ctx.textAlign = "center";
+      ctx.fillStyle = "white";
+      ctx.lineWith = 2;
+      ctx.strokeStyle = '#2b162b';
+      ctx.fillText(query_#{target}, canvas.width/2, 960);
+      //ctx.strokeText(query, canvas.width/2, 960);
+
+      CanvasRenderingContext2D.prototype.drawImage.apply(ctx, selectedImageData);
+    };
+
+    $(document).ready(function() {
+      if ("#{target}" === 'el') {
+        var tr = $("#translation_#{target}").val();
+        window.t.go(1, document.getElementById("translation_#{target}"));
+        $("#transliteration_#{target}").val($("#translation_#{target}").val());
+        transliteration_#{target} = $("#transliteration_#{target}").val();
+        $("#translation_#{target}").val(tr);
+      }
+
+    });
+
+    $("form#save_image_#{target}").submit(function(e) {
+      $("#ig_image_data_#{target}").val($("#ig_image_#{target}")[0].toDataURL());
+      $("#ig_image_name_#{target}").val($("#query_#{target}").val().replace("the ", ""));
+
+      var form = $(this);
+      var url = form.attr('action');
+
+      $.ajax({
+         type: "POST",
+         url: url,
+         data: form.serialize(),
+         success: function(data)
+         {
+             console.log("OK");
+         }
+       });
+
+      e.preventDefault();
+      return false;
+    });

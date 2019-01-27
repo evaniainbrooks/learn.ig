@@ -63,7 +63,8 @@ end
 
 # Google translate text
 def translate_text(text, target: 'el', from: 'en')
-  cache_key = "translate/#{text.gsub(' ', '+')}+#{target}+#{from}.txt"
+  cache_prefix = Array(text).join('+').gsub(' ', '+')
+  cache_key = "translate/#{cache_prefix}+#{target}+#{from}.txt"
   translate_client = Google::Cloud::Translate.new project: GOOGLE_PROJECT_ID, credentials: GOOGLE_CREDENTIALS
 
   cache(cache_key) do
@@ -89,8 +90,11 @@ post '/:target/save_image' do
   save_image(@name, @target, @data)
 
   antonym = params.fetch(:antonym, 0).to_i == 1
+  quiz = params.fetch(:quiz, 0).to_i == 1
   if antonym
     redirect "/#{@target}/antonym/#{COMMON_ANTONYMS.sample.join(',').downcase}"
+  elsif quiz
+    redirect "/#{@target}/quiz/#{COMMON_NOUNS.sample}"
   else
     redirect "/#{@target}/generate/#{COMMON_NOUNS.sample}"
   end
@@ -100,17 +104,43 @@ post '/:target/next_image' do
   @target = params[:target]
 
   antonym = params.fetch(:antonym, 0).to_i == 1
+  quiz = params.fetch(:quiz, 0).to_i == 1
+  multigen = params.fetch(:multigen, 0).to_i == 1
   if antonym
     redirect "/#{@target}/antonym/#{COMMON_ANTONYMS.sample.join(',').downcase}"
+  elsif quiz
+    redirect "/#{@target}/quiz/#{COMMON_NOUNS.sample}"
+  elsif multigen
+    redirect "/#{@target}/multigen/#{COMMON_NOUNS.sample}"
   else
     redirect "/#{@target}/generate/#{COMMON_NOUNS.sample}"
   end
 end
 
+get '/:targets/multigen/:query' do
+  @targets = params.fetch(:targets).split(',')
+  @query = params.fetch(:query, '')
+
+  @queries, @translations = @targets.map do |target|
+    query = @query
+    query = "the " + @query if ['el', 'de'].include?(target)
+    translation = translate_text(query, target: target)
+    [query, translation]
+  end.transpose
+
+  pq = params.fetch(:pq, @query)
+  result = search_pexels(pq.gsub('the ', ''))
+  @photos = result['photos'].collect do |photo|
+    OpenStruct.new(photo['src'].transform_keys { |k| k.to_sym })
+  end
+
+  slim :multigen
+end
+
 get '/:target/generate/:query' do
   @query = params.fetch(:query, '')
-  @query = "the " + @query if params.fetch(:pronoun, 1).to_i == 1
   @target = params.fetch(:target)
+  @query = "the " + @query if ['el', 'de'].include?(@target)
   @translation = translate_text(@query, target: @target)
 
   pq = params.fetch(:pq, @query)
@@ -120,6 +150,21 @@ get '/:target/generate/:query' do
   end
 
   slim :generate
+end
+
+get '/:target/quiz/:query' do
+  @query = params.fetch(:query, '')
+  @nouns = Array.new(3).map { COMMON_NOUNS.sample } << @query
+  @target = params.fetch(:target)
+  @translations = translate_text(@nouns, target: @target).shuffle
+
+  pq = params.fetch(:pq, @query)
+  result = search_pexels(pq)
+  @photos = result['photos'].collect do |photo|
+    OpenStruct.new(photo['src'].transform_keys { |k| k.to_sym })
+  end
+
+  slim :quiz
 end
 
 get '/:target/antonym/:query' do
