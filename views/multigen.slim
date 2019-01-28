@@ -46,21 +46,29 @@ javascript:
     });
 
     $('#save-all').click(function() {
-      alert('OK');
       $('form.save-image').submit();
     });
   });
 
-form action="/#{@targets.join(',')}/next_image" method='POST' id='next_image'
-  input type='hidden' value='1' name='multigen' id='multigen'
-  button class='btn btn-large' type='submit' name='save'
-    | Skip to Next
-  button id="save-all" type='button' class='btn btn-large'
-    | Save All
+div class='row mb-2'
+  div class='col-12'
+    form action="/#{@targets.join(',')}/next_image" method='POST' id='next_image'
+      input type='hidden' value='1' name='multigen' id='multigen'
+      button class='btn btn-large mr-1' type='submit' name='save'
+        | Skip to Next
+      button id="save-all" type='button' class='btn btn-large'
+        | Save All
 
 - @targets.each.with_index do |target, i|
-  div class="row"
-    div class='col-6   center'
+  div class="row border border-rounded border-primary py-4"
+    div class='col-6'
+      h3 class='d-inline bold mr-3'= target
+      form action="/#{target}/save_image" class="d-inline save-image" method='POST' id="save_image_#{target}"
+        input type='hidden' value='' name='ig_image_data' id="ig_image_data_#{target}"
+        input type='hidden' value=@queries[i] name='ig_image_name' id="ig_image_name_#{target}"
+        button type='submit' name='save' class='btn btn-large'
+          | Save Image
+      br
       input class='form-control' id="translation_#{target}" value=@translations[i]
       br
       input class='form-control' id="transliteration_#{target}" value=''
@@ -69,14 +77,6 @@ form action="/#{@targets.join(',')}/next_image" method='POST' id='next_image'
       br
 
     div class="col-6"
-      form action="/#{target}/save_image" class="save-image" method='POST' id="save_image_#{target}"
-        input type='hidden' value='' name='ig_image_data' id="ig_image_data_#{target}"
-        input type='hidden' value=@queries[i] name='ig_image_name' id="ig_image_name_#{target}"
-        button type='submit' name='save'
-          | Save Image
-
-
-      br
       canvas id="ig_image_#{target}" class=' ' width=1080 height=1080
         Image Canvas
 
@@ -174,7 +174,7 @@ form action="/#{@targets.join(',')}/next_image" method='POST' id='next_image'
          data: form.serialize(),
          success: function(data)
          {
-             console.log("OK");
+           $('#save_image_#{target} button').addClass('btn btn-success');
          }
        });
 
