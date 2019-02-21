@@ -1,16 +1,21 @@
-h1= "Searched for #{@query} (el: #{@translations.last})"
+h1= "Searched for #{@query}"
 p= "Choices #{@nouns.join(', ')} (el: #{@translations.join(', ')})"
 
 div class='owl-carousel owl-theme'
   - @photos.each do |photo|
     div: img class='stock' src=photo.small data-large=photo.large data-square=photo.square
 
+h3 Translations
 div class='text-center center-block center'
-  input class='form-control' id='translation' value=@translations.last
+  input class='form-control translation' id='transliteration' value=''
   br
-  input class='form-control' id='transliteration' value=''
+  input class='form-control translation' id='translation0' value=@translations[0]
   br
-  input class='form-control' id='query' value=@query
+  input class='form-control translation' id='translation1' value=@translations[1]
+  br
+  input class='form-control translation' id='translation2' value=@translations[2]
+  br
+  input class='form-control translation' id='translation3' value=@translations[3]
   br
 
 form action="/#{@target}/save_image" method='POST' id='save_image'
@@ -29,52 +34,43 @@ br
 canvas id='ig_image' class='text-center center-block' width=1080 height=1080
   Image Canvas
 
+iframe src="/#{@target}/generate/#{@query}" width='100%' height=500
+
 javascript:
   var selectedImageData = [];
   var query = "#{@query}";
   var translation = "#{@translations.last}";
+  var options = "#{@target}" !== 'el' ? ['a', 'b', 'c', 'd'] : ['α', 'β', 'γ', 'δ'];
+  var transliterations = [null, null, null, null];
 
-  if ("#{@target}" === 'el') {
-    var transliterations = [null, null, null, null];
-
-    $('#transliteration').val("#{@translations[0]}");
+  var updateTransliterations = function() {
+    $('#transliteration').val($('#translation0').val());
     t.go(1, document.getElementById('transliteration'));
     transliterations[0] = $('#transliteration').val();
 
-    $('#transliteration').val("#{@translations[1]}");
+    $('#transliteration').val($('#translation1').val());
     t.go(1, document.getElementById('transliteration'));
     transliterations[1] = $('#transliteration').val();
 
-    $('#transliteration').val("#{@translations[2]}");
+    $('#transliteration').val($('#translation2').val());
     t.go(1, document.getElementById('transliteration'));
     transliterations[2] = $('#transliteration').val();
 
-    $('#transliteration').val("#{@translations[3]}");
+    $('#transliteration').val($('#translation3').val());
     t.go(1, document.getElementById('transliteration'));
     transliterations[3] = $('#transliteration').val();
-  }
+  };
 
-  $('#translation').change(function() {
-    translation = $(this).val();
-    var tr = $('#translation').val();
-    window.t.go(1, document.getElementById('translation'));
-    $('#transliteration').val($('#translation').val());
-    transliteration = $('#transliteration').val();
-    $('#translation').val(tr);
-    updateImage();
-  });
-
-  $('#query').change(function() {
-    query = $(this).val();
-    updateImage();
-  });
-
-  $('#transliteration').change(function() {
-    transliteration = $(this).val();
+  $('.translation').change(function() {
     updateImage();
   });
 
   var updateImage = function() {
+
+    if ("#{@target}" === 'el') {
+      updateTransliterations();
+    }
+
     var canvas = document.getElementById('ig_image');
     var ctx = canvas.getContext('2d');
 
@@ -87,7 +83,16 @@ javascript:
     ctx.fillStyle = 'rgba(0, 0, 100, 0.5)';
     ctx.fillRect(50, 50, 1000, 1000);
 
-    ctx.fillStyle = 'rgb(221, 221, 221)';
+    //ctx.fillStyle = 'rgb(221, 221, 221)';
+
+    var grd = ctx.createLinearGradient(0, 700, 0, 0);
+    grd.addColorStop(1, 'rgb(221, 221, 221)');
+    grd.addColorStop(0, 'rgb(25, 25, 25)');
+    //grd.addColorStop(0, 'rgb(51, 51, 51)');
+
+    ctx.fillStyle = grd;
+
+
     ctx.fillRect(50, 50, 980, 980);
 
     var trY = 180;
@@ -114,56 +119,56 @@ javascript:
     ctx.strokeStyle = '#2b162b';
     ctx.fillStyle = "black";
 
-    ctx.font = "60px Arial";
-    ctx.fillStyle = "red";
-    ctx.fillText('α)', canvas.width/4 - 90, 820);
-    ctx.strokeText('α)', canvas.width/4 - 90, 820);
+    ctx.font = "bold 65px Verdana";
+    ctx.fillStyle = "rgb(255, 51, 51)";
+    ctx.fillText(options[0] + ')', canvas.width/4 - 90, 820);
+    ctx.strokeText(options[0] + ')', canvas.width/4 - 90, 820);
 
     ctx.font = "50px Arial";
-    ctx.fillStyle = "black";
-    ctx.fillText("#{@translations[0]}", canvas.width/4 - 30, 820);
+    ctx.fillStyle = "white";
+    ctx.fillText($('#translation0').val(), canvas.width/4 - 25, 820);
     if ("#{@target}" === 'el') {
       ctx.font = "30px Arial";
-      ctx.fillText(transliterations[0], canvas.width/4 - 30, 860);
+      ctx.fillText(transliterations[0], canvas.width/4 - 25, 860);
     }
 
-    ctx.font = "60px Arial";
-    ctx.fillStyle = "green";
-    ctx.fillText('β)', (canvas.width/4) * 3 - 160, 820);
-    ctx.strokeText('β)', (canvas.width/4) * 3 - 160, 820);
+    ctx.font = "bold 65px Verdana";
+    ctx.fillStyle = "rgb(51, 255, 51)";
+    ctx.fillText(options[1] + ')', (canvas.width/4) * 3 - 160, 820);
+    ctx.strokeText(options[1] + ')', (canvas.width/4) * 3 - 160, 820);
 
     ctx.font = "50px Arial";
-    ctx.fillStyle = "black";
-    ctx.fillText("#{@translations[1]}", (canvas.width/4) * 3 - 100, 820);
+    ctx.fillStyle = "white";
+    ctx.fillText($('#translation1').val(), (canvas.width/4) * 3 - 95, 820);
     if ("#{@target}" === 'el') {
       ctx.font = "30px Arial";
-      ctx.fillText(transliterations[1], (canvas.width/4) * 3 - 100, 860);
+      ctx.fillText(transliterations[1], (canvas.width/4) * 3 - 95, 860);
     }
 
-    ctx.font = "60px Arial";
-    ctx.fillStyle = "blue";
-    ctx.fillText('γ)', canvas.width/4 - 90, 940);
-    ctx.strokeText('γ)', canvas.width/4 - 90, 940);
+    ctx.font = "bold 65px Verdana";
+    ctx.fillStyle = "rgb(51, 51, 255)";
+    ctx.fillText(options[2] + ')', canvas.width/4 - 90, 940);
+    ctx.strokeText(options[2] + ')', canvas.width/4 - 90, 940);
 
     ctx.font = "50px Arial";
-    ctx.fillStyle = "black";
-    ctx.fillText("#{@translations[2]}", canvas.width/4 - 30, 940);
+    ctx.fillStyle = "white";
+    ctx.fillText($('#translation2').val(), canvas.width/4 - 25, 940);
     if ("#{@target}" === 'el') {
       ctx.font = "30px Arial";
-      ctx.fillText(transliterations[2], canvas.width/4 - 30, 980);
+      ctx.fillText(transliterations[2], canvas.width/4 - 25, 980);
     }
 
-    ctx.font = "60px Arial";
-    ctx.fillStyle = "yellow";
-    ctx.fillText('δ)', (canvas.width/4) * 3 - 160, 940);
-    ctx.strokeText('δ)', (canvas.width/4) * 3 - 160, 940);
+    ctx.font = "bold 65px Verdana";
+    ctx.fillStyle = "rgb(51, 255, 255)";
+    ctx.fillText(options[3] + ')', (canvas.width/4) * 3 - 160, 940);
+    ctx.strokeText(options[3] + ')', (canvas.width/4) * 3 - 160, 940);
 
     ctx.font = "50px Arial";
-    ctx.fillStyle = "black";
-    ctx.fillText("#{@translations[3]}", (canvas.width/4) * 3 - 100, 940);
+    ctx.fillStyle = "white";
+    ctx.fillText($('#translation3').val(), (canvas.width/4) * 3 - 95, 940);
     if ("#{@target}" === 'el') {
       ctx.font = "30px Arial";
-      ctx.fillText(transliterations[3], (canvas.width/4 * 3) - 100, 980);
+      ctx.fillText(transliterations[3], (canvas.width/4 * 3) - 95, 980);
     }
     //ctx.strokeText(query, canvas.width/2, 960);
 
@@ -189,14 +194,6 @@ javascript:
   };
 
   $(document).ready(function() {
-    if ("#{@target}" === 'el') {
-      var tr = $('#translation').val();
-      window.t.go(1, document.getElementById('translation'));
-      $('#transliteration').val($('#translation').val());
-      transliteration = $('#transliteration').val();
-      $('#translation').val(tr);
-    }
-
     $('.stock').imgAreaSelect({
       handles: true,
       aspectRatio: '1:1',
@@ -214,6 +211,6 @@ javascript:
 
   $('form#save_image').submit(function() {
     $('#ig_image_data').val($('#ig_image')[0].toDataURL());
-    $('#ig_image_name').val($('#query').val() + "_quiz");
+    $('#ig_image_name').val("#{@query}_quiz");
     return true;
   });
